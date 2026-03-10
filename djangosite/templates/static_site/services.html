@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Services — OnlyBees</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800;900&family=Barlow+Condensed:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="main.css">
+  <style>
+    .service-tab-bar {
+      background: var(--white);
+      border-bottom: 1.5px solid var(--border);
+      padding: 0 3%;
+      display: flex;
+      align-items: flex-end;
+      overflow-x: auto;
+      scrollbar-width: none;
+      position: sticky;
+      top: 68px;
+      z-index: 200;
+    }
+    .service-tab-bar::-webkit-scrollbar { display: none; }
+
+    .service-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 14px 18px 12px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      border-top: none; border-left: none; border-right: none;
+      transition: all 0.2s;
+      white-space: nowrap;
+      background: none;
+      font-family: var(--font);
+      color: var(--light);
+      min-width: 72px;
+      flex-shrink: 0;
+    }
+    .service-tab:hover { color: var(--black); }
+    .service-tab.active { color: var(--black); border-bottom-color: var(--black); }
+    .service-tab .tab-icon { line-height: 1; }
+    .service-tab .tab-icon svg {
+      width: 30px; height: 30px;
+      transition: filter 0.2s;
+    }
+    .service-tab:not(.active) .tab-icon svg { filter: grayscale(1) opacity(0.4); }
+    .service-tab.active .tab-icon svg { filter: grayscale(0) opacity(1); }
+    .service-tab .tab-label {
+      font-size: 0.65rem; font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      text-align: center; line-height: 1.3;
+    }
+
+    /* layout */
+    .booking-layout {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      min-height: calc(100vh - 160px);
+    }
+    .booking-main { padding: 44px 6%; border-right: 1.5px solid var(--border); }
+
+    .service-panel { display: none; animation: fadeIn 0.2s ease; }
+    .service-panel.active { display: block; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(4px);} to { opacity:1; transform:translateY(0);} }
+
+    .panel-title { font-size: 1.8rem; font-weight: 900; letter-spacing: -0.02em; margin-bottom: 5px; }
+    .panel-subtitle { font-size: 0.88rem; color: var(--light); margin-bottom: 28px; }
+
+    /* trip type radios */
+    .trip-type-row { display: flex; gap: 28px; margin-bottom: 24px; flex-wrap: wrap; }
+    .trip-radio { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; color: var(--mid); }
+    .trip-radio input { accent-color: var(--black); width: 16px; height: 16px; cursor: pointer; }
+    .trip-radio.selected { color: var(--black); }
+
+    /* field boxes */
+    .booking-row { display: grid; gap: 12px; margin-bottom: 12px; }
+    .booking-row.cols-2 { grid-template-columns: 1fr 1fr; }
+    .booking-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .booking-row.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+    .field-box {
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      transition: border-color 0.2s;
+      background: var(--white);
+      position: relative;
+      cursor: pointer;
+    }
+    .field-box:hover, .field-box:focus-within { border-color: var(--black); }
+    .field-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--light); margin-bottom: 7px; }
+    .field-box input[type="text"],
+    .field-box input[type="number"],
+    .field-box input[type="date"],
+    .field-box input[type="email"],
+    .field-box input[type="tel"],
+    .field-box select {
+      width: 100%; border: none; padding: 0; background: transparent;
+      outline: none; font-family: var(--font); color: var(--black);
+      font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em;
+      appearance: none; -webkit-appearance: none;
+    }
+    .field-box input::placeholder { color: #ccc; }
+    .field-box input[type="date"] { font-size: 1rem; font-weight: 700; }
+    .field-box select { font-size: 1rem; font-weight: 700; cursor: pointer; }
+    .field-sub { font-size: 0.76rem; color: var(--light); margin-top: 5px; }
+
+    .swap-row { position: relative; }
+    .swap-btn {
+      position: absolute; right: -17px; top: 50%; transform: translateY(-50%);
+      width: 32px; height: 32px; background: var(--white);
+      border: 1.5px solid var(--border); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; z-index: 10; font-size: 0.85rem; color: var(--mid);
+      transition: all 0.2s;
+    }
+    .swap-btn:hover { background: var(--black); color: var(--white); border-color: var(--black); }
+
+    /* autocomplete */
+    .field-box .suggestions {
+      position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+      background: var(--white); border: 1.5px solid var(--black);
+      border-radius: 10px; z-index: 300; max-height: 200px; overflow-y: auto;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+    .field-box .suggestions div { padding: 11px 16px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+    .field-box .suggestions div:hover { background: var(--light-grey); }
+    .field-box .suggestions:empty { display: none; }
+
+    /* special fares */
+    .special-fares { margin: 16px 0; }
+    .special-fares-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--light); margin-bottom: 10px; }
+    .fare-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .fare-pill {
+      padding: 8px 16px; border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.15s;
+      background: var(--white); font-family: var(--font);
+    }
+    .fare-pill:hover, .fare-pill.active { border-color: var(--black); background: var(--black); color: var(--white); }
+    .fare-pill .pill-sub { font-size: 0.68rem; font-weight: 400; color: var(--light); display: block; margin-top: 1px; }
+    .fare-pill.active .pill-sub { color: rgba(255,255,255,0.6); }
+
+    /* info cards for visa/insurance/forex */
+    .info-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+    .info-card {
+      border: 1.5px solid var(--border); border-radius: 12px;
+      cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
+    }
+    .info-card:hover { border-color: var(--black); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+    .info-card.selected { border-color: var(--black); box-shadow: 0 0 0 2px var(--black); }
+    .info-card-thumb { height: 100px; overflow: hidden; position: relative; }
+    .info-card-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s ease; }
+    .info-card:hover .info-card-thumb img { transform: scale(1.06); }
+    .info-card-thumb .ic-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.3), transparent); }
+    .info-card-body { padding: 14px 16px; }
+    .info-card h3 { font-size: 0.9rem; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.01em; }
+    .info-card p { font-size: 0.76rem; color: var(--mid); line-height: 1.5; }
+    .info-card .badge-new {
+      position: absolute; top: 10px; right: 10px;
+      background: var(--black); color: var(--white);
+      font-size: 0.6rem; font-weight: 700; padding: 2px 7px; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: 0.06em; z-index: 2;
+    }
+
+    /* package cards */
+    .package-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+    .package-card {
+      border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .package-card:hover { border-color: var(--black); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+    .package-card.selected { border-color: var(--black); box-shadow: 0 0 0 2px var(--black); }
+    .package-thumb {
+      height: 140px;
+      overflow: hidden;
+      position: relative;
+    }
+    .package-thumb img {
+      width: 100%; height: 100%; object-fit: cover;
+      display: block; transition: transform 0.4s ease;
+    }
+    .package-card:hover .package-thumb img { transform: scale(1.06); }
+    .package-thumb .pkg-overlay {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.45), transparent);
+      height: 50%;
+    }
+    .package-info { padding: 12px 14px; }
+    .package-info h3 { font-size: 0.9rem; font-weight: 800; margin-bottom: 3px; }
+    .package-info p { font-size: 0.72rem; color: var(--light); }
+    .package-info .pkg-price { font-size: 0.95rem; font-weight: 900; color: var(--black); margin-top: 6px; }
+
+    /* price result */
+    .price-result {
+      margin-top: 24px; padding: 22px 28px;
+      background: var(--black); border-radius: 12px;
+      display: flex; align-items: center; justify-content: space-between;
+      color: var(--white); gap: 16px; flex-wrap: wrap;
+    }
+    .pr-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.45); }
+    .pr-amount { font-size: 2.2rem; font-weight: 900; letter-spacing: -0.02em; line-height: 1; margin: 4px 0; }
+    .pr-note { font-size: 0.74rem; color: rgba(255,255,255,0.35); }
+    .pr-add-btn {
+      background: white; color: var(--black); border: none;
+      border-radius: 50px; padding: 12px 24px; font-size: 0.85rem;
+      font-weight: 800; cursor: pointer; white-space: nowrap;
+      font-family: var(--font); transition: background 0.2s; flex-shrink: 0;
+    }
+    .pr-add-btn:hover { background: #eee; }
+
+    .search-btn-wrap { margin-top: 28px; display: flex; justify-content: center; }
+    .search-btn {
+      background: var(--black); color: var(--white); border: none;
+      border-radius: 50px; padding: 16px 72px; font-size: 0.95rem;
+      font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; font-family: var(--font); transition: all 0.2s;
+    }
+    .search-btn:hover { background: #222; transform: translateY(-1px); }
+
+    /* divider */
+    .form-divider {
+      border: none; border-top: 1.5px solid var(--border);
+      margin: 24px 0;
+    }
+
+    /* sidebar */
+    .booking-sidebar { padding: 28px 20px; position: sticky; top: 140px; height: fit-content; }
+    .sidebar-heading {
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.14em; color: var(--light); margin-bottom: 16px;
+      padding-bottom: 12px; border-bottom: 1.5px solid var(--border);
+    }
+
+      position: fixed; bottom: 28px; right: 28px; width: 44px; height: 44px;
+      background: var(--black); color: var(--white); border: none; border-radius: 50%;
+      font-size: 0.9rem; cursor: pointer; display: none; align-items: center;
+      justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.2); z-index: 500;
+      transition: transform 0.2s;
+    }
+    #back-to-top:hover { transform: translateY(-2px); }
+    #back-to-top.visible { display: flex; }
+
+    @media (max-width: 900px) {
+      .booking-layout { grid-template-columns: 1fr; }
+      .booking-main { border-right: none; }
+      .booking-sidebar { border-top: 1.5px solid var(--border); position: static; }
+      .info-cards, .package-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+      .booking-row.cols-2, .booking-row.cols-3, .booking-row.cols-4 { grid-template-columns: 1fr; }
+      .info-cards, .package-grid { grid-template-columns: 1fr; }
+      .service-tab { padding: 12px 12px 10px; min-width: 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="home.html" class="header-logo">OnlyBees.</a>
+  <nav id="main-nav">
+    <a href="home.html">Home</a>
+    <a href="services.html" class="active">Services</a>
+    
+    <a href="login.html" class="nav-login" id="nav-auth-link">Login</a>
+    <a href="signup.html" class="nav-signup" id="nav-signup-link">Sign up</a>
+  </nav>
+  <button class="menu-toggle" onclick="document.getElementById('main-nav').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<!-- TAB BAR -->
+<div class="service-tab-bar">
+
+  <!-- Flights -->
+  <button class="service-tab active" onclick="switchTab('flights',this)">
+    <span class="tab-icon"><svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 20l4-1.5 3 4 5-2L8 8l3-1 10 9 5-2c1.5-.5 3 .3 3 1.8s-1 2.5-2.5 3l-5 2-3 10-3 1-2-6-4 1.5L4 20z" fill="#b0c4de" stroke="#6a8caf" stroke-width="0.8"/><path d="M8 8l8 12-8 0z" fill="#d6e8f7"/></svg></span>
+    <span class="tab-label">Flights</span>
+  </button>
+
+  <!-- Hotels -->
+  <button class="service-tab" onclick="switchTab('hotels',this)">
+    <span class="tab-icon"><svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 10 L16 3 L29 10" fill="#e8d5b7" stroke="#b8956a" stroke-width="1"/><rect x="4" y="10" width="24" height="19" rx="1" fill="#f0e0c0" stroke="#b8956a" stroke-width="1"/><rect x="4" y="10" width="24" height="5" rx="0" fill="#e8c88a" stroke="#b8956a" stroke-width="0.8"/><rect x="8" y="19" width="4" height="4" rx="0.5" fill="#b8956a"/><rect x="14" y="19" width="4" height="4" rx="0.5" fill="#b8956a"/><rect x="20" y="19" width="4" height="4" rx="0.5" fill="#b8956a"/><rect x="12" y="23" width="8" height="6" rx="0.5" fill="#c9a87c"/></svg></span>
+    <span class="tab-label">Hotels</span>
+  </button>
+
+  <!-- Trains -->
+  <button class="service-tab" onclick="switchTab('trains',this)">
+    <span class="tab-icon"><svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="4" width="20" height="20" rx="4" fill="#c8dff0" stroke="#5b8db8" stroke-width="1"/><rect x="6" y="4" width="20" height="7" rx="4" fill="#a0c4e0" stroke="#5b8db8" stroke-width="0.8"/><rect x="9" y="8" width="6" height="5" rx="1" fill="#e8f4ff"/><rect x="17" y="8" width="6" height="5" rx="1" fill="#e8f4ff"/><rect x="8" y="17" width="16" height="2" rx="1" fill="#5b8db8"/><circle cx="10" cy="26" r="3" fill="#c8dff0" stroke="#5b8db8" stroke-width="1"/><circle cx="22" cy="26" r="3" fill="#c8dff0" stroke="#5b8db8" stroke-width="1"/><line x1="10" y1="23" x2="22" y2="23" stroke="#5b8db8" stroke-width="1"/></svg></span>
+    <span class="tab-label">Trains</span>
+  </button>
+
+  <!-- Buses -->
+  <button class="service-tab" onclick="switchTab('buses',this)">
+    <span class="tab-icon"><svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="6" width="24" height="18" rx="3" fill="#c8e6c9" stroke="#4caf7d" stroke-width="1"/><rect x="4" y="6" width="24" height="7" rx="3" fill="#a5d6a7" stroke="#4caf7d" stroke-width="0.8"/><rect x="6" y="9" width="7" height="5" rx="1" fill="#e8f5e9"/><rect x="15" y="9" width="7" height="5" rx="1" fill="#e8f5e9"/><rect x="4" y="20" width="24" height="3" rx="0" fill="#81c784" stroke="#4caf7d" stroke-width="0.5"/><circle cx="9" cy="26" r="3" fill="#c8e6c9" stroke="#4caf7d" stroke-width="1"/><circle cx="23" cy="26" r="3" fill="#c8e6c9" stroke="#4caf7d" stroke-width="1"/><rect x="14" y="14" width="4" height="6" rx="0.5" fill="#4caf7d"/></svg></span>
+    <span class="tab-label">Buses</span>
+  </button>
+
+  <!-- Cabs -->
+  <button class="service-tab" onclick="switchTab('cabs',this)">
+    <span class="tab-icon"><svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 18 L9 10 L23 10 L26 18" fill="#ffe082" stroke="#f9a825" stroke-width="0.8"/><rect x="4" y="17" width="24" height="8" rx="2" fill="#ffd54f" stroke="#f9a825" stroke-width="1"/><path d="M10 10 L12 5 L20 5 L22 10" fill="#ffecb3" stroke="#f9a825" stroke-width="0.8"/><rect x="8" y="12" width="6" height="5" rx="1" fill="#e3f2fd"/><rect x="18" y="12" width="6" height="5" rx="1" fill="#e3f2fd"/><circle cx="9" cy="26" r="3" fill="#757575" stroke="#424242" stroke-width="1"/><circle cx="23" cy="26" r="3" fill="#757575" stroke="#424242" stroke-width="1"/><rect x="2" y="19" width="4" height="3" rx="1" fill="#ef5350"/><rect x="26" y="19" width="4" height="3" rx="1" fill="#ef5350"/></svg></span>
+    <span class="tab-label">Cabs</span>
+  </button>
+
+  <!-- Airbnb -->
+  <button class="service-tab" onclick="switchTab('airbnb',this)">
+    <span class="tab-icon"><svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 14 L16 4 L28 14 L28 29 L4 29 Z" fill="#ffe0b2" stroke="#e65100" stroke-width="1"/><path d="M4 14 L16 4 L28 14" fill="#ffcc80" stroke="#e65100" stroke-width="1"/><rect x="8" y="14" width="6" height="6" rx="0.8" fill="#e65100" opacity="0.7"/><rect x="18" y="14" width="6" height="6" rx="0.8" fill="#e65100" opacity="0.7"/><rect x="12" y="20" width="8" height="9" rx="0.8" fill="#ffb74d"/><rect x="14" y="22" width="4" height="3" rx="0.5" fill="#e65100" opacity="0.5"/></svg></span>
+    <span class="tab-label">Airbnb</span>
+  </button>
+
+  <!-- Villas -->
+  <button class="service-tab" onclick="switchTab('villas',this)">
+    <span class="tab-icon"><svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="14" width="24" height="15" rx="1" fill="#e8d5f5" stroke="#9c27b0" stroke-width="1"/><path d="M2 15 L16 4 L30 15" fill="none" stroke="#9c27b0" stroke-width="1.2"/><rect x="4" y="14" width="24" height="4" fill="#d7b8ee" stroke="#9c27b0" stroke-width="0.5"/><rect x="7" y="19" width="5" height="5" rx="0.5" fill="#9c27b0" opacity="0.6"/><rect x="20" y="19" width="5" height="5" rx="0.5" fill="#9c27b0" opacity="0.6"/><rect x="13" y="21" width="6" height="8" rx="0.5" fill="#ce93d8"/><path d="M28 14 Q30 10 28 7 Q26 10 28 14Z" fill="#66bb6a"/><path d="M24 12 Q26 8 24 5 Q22 8 24 12Z" fill="#66bb6a"/></svg></span>
+    <span class="tab-label">Villas</span>
+  </button>
+
+  <!-- Holiday Packages -->
+  <button class="service-tab" onclick="switchTab('packages',this)">
+    <span class="tab-icon"><svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="12" fill="#e3f2fd" stroke="#1976d2" stroke-width="1"/><ellipse cx="16" cy="16" rx="5" ry="12" fill="none" stroke="#1976d2" stroke-width="0.8"/><line x1="4" y1="16" x2="28" y2="16" stroke="#1976d2" stroke-width="0.8"/><line x1="6" y1="10" x2="26" y2="10" stroke="#1976d2" stroke-width="0.8" stroke-dasharray="1,1"/><line x1="6" y1="22" x2="26" y2="22" stroke="#1976d2" stroke-width="0.8" stroke-dasharray="1,1"/><circle cx="16" cy="4" r="1.5" fill="#1976d2"/><circle cx="16" cy="28" r="1.5" fill="#1976d2"/></svg></span>
+    <span class="tab-label">Holiday<br>Packages</span>
+  </button>
+
+  <!-- Cruise -->
+  <button class="service-tab" onclick="switchTab('cruise',this)">
+    <span class="tab-icon"><svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 22 L4 28 L28 28 L26 22 Z" fill="#b3e5fc" stroke="#0288d1" stroke-width="1"/><rect x="8" y="12" width="16" height="11" rx="2" fill="#e1f5fe" stroke="#0288d1" stroke-width="1"/><rect x="8" y="12" width="16" height="5" rx="2" fill="#b3e5fc" stroke="#0288d1" stroke-width="0.8"/><rect x="11" y="15" width="4" height="3" rx="0.5" fill="#0288d1" opacity="0.6"/><rect x="17" y="15" width="4" height="3" rx="0.5" fill="#0288d1" opacity="0.6"/><rect x="14" y="5" width="4" height="8" rx="0" fill="#0288d1" opacity="0.7"/><path d="M14 5 L18 5 L20 9 L14 9 Z" fill="#e3f2fd" stroke="#0288d1" stroke-width="0.6"/><path d="M2 27 Q8 24 16 27 Q24 30 30 27" fill="none" stroke="#0288d1" stroke-width="1.5"/></svg></span>
+    <span class="tab-label">Cruise</span>
+  </button>
+
+  <!-- Visa -->
+  <button class="service-tab" onclick="switchTab('visa',this)">
+    <span class="tab-icon"><svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="6" width="26" height="20" rx="2" fill="#e8eaf6" stroke="#5c6bc0" stroke-width="1"/><rect x="3" y="6" width="26" height="7" rx="2" fill="#c5cae9" stroke="#5c6bc0" stroke-width="0.8"/><rect x="5" y="9" width="10" height="2" rx="1" fill="#5c6bc0" opacity="0.5"/><circle cx="9" cy="19" r="4" fill="#9fa8da" stroke="#5c6bc0" stroke-width="0.8"/><rect x="16" y="17" width="10" height="1.5" rx="0.75" fill="#c5cae9"/><rect x="16" y="20" width="7" height="1.5" rx="0.75" fill="#c5cae9"/><path d="M7 19 L8.5 21 L12 17" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="tab-label">Visa</span>
+  </button>
+
+  <!-- Forex -->
+  <button class="service-tab" onclick="switchTab('forex',this)">
+    <span class="tab-icon"><svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="8" width="26" height="16" rx="2" fill="#e8f5e9" stroke="#2e7d32" stroke-width="1"/><rect x="3" y="8" width="26" height="5" rx="2" fill="#c8e6c9" stroke="#2e7d32" stroke-width="0.8"/><circle cx="16" cy="18" r="5" fill="#a5d6a7" stroke="#2e7d32" stroke-width="0.8"/><text x="16" y="21" font-family="Arial" font-size="6" font-weight="900" fill="#2e7d32" text-anchor="middle">$</text><circle cx="7" cy="18" r="2.5" fill="#81c784"/><circle cx="25" cy="18" r="2.5" fill="#81c784"/></svg></span>
+    <span class="tab-label">Forex &amp;<br>Currency</span>
+  </button>
+
+  <!-- Travel Insurance -->
+  <button class="service-tab" onclick="switchTab('insurance',this)">
+    <span class="tab-icon"><svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 3 L28 8 L28 18 C28 24 22 29 16 30 C10 29 4 24 4 18 L4 8 Z" fill="#fce4ec" stroke="#e91e63" stroke-width="1"/><path d="M16 3 L28 8 L28 18 C28 22 24 27 16 29" fill="#f8bbd0" stroke="#e91e63" stroke-width="0.5"/><path d="M12 17 L15 20 L21 13" stroke="#e91e63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="tab-label">Travel<br>Insurance</span>
+  </button>
+
+</div>
+
+<!-- BOOKING LAYOUT -->
+<div class="booking-layout">
+<div class="booking-main">
+
+<!-- ═══════════════ FLIGHTS ═══════════════ -->
+<div class="service-panel active" id="panel-flights">
+  <h2 class="panel-title">Book Flights</h2>
+  <p class="panel-subtitle">Search domestic and international flights at the best fares.</p>
+  <div class="trip-type-row">
+    <label class="trip-radio selected"><input type="radio" name="tripType" value="oneway" checked onchange="toggleReturn(this)"> One Way</label>
+    <label class="trip-radio"><input type="radio" name="tripType" value="return" onchange="toggleReturn(this)"> Round Trip</label>
+  </div>
+  <div class="booking-row cols-2 swap-row">
+    <div class="field-box">
+      <div class="field-label">From</div>
+      <input type="text" id="flightFrom" placeholder="Delhi" oninput="showSug(this,'flightFromSug')" autocomplete="off">
+      <div class="field-sub">Where are you flying from?</div>
+      <div class="suggestions" id="flightFromSug"></div>
+    </div>
+    <button class="swap-btn" onclick="swap('flightFrom','flightTo')" title="Swap">⇄</button>
+    <div class="field-box">
+      <div class="field-label">To</div>
+      <input type="text" id="flightTo" placeholder="Mumbai" oninput="showSug(this,'flightToSug')" autocomplete="off">
+      <div class="field-sub">Where are you flying to?</div>
+      <div class="suggestions" id="flightToSug"></div>
+    </div>
+  </div>
+  <div class="booking-row cols-3">
+    <div class="field-box">
+      <div class="field-label">Departure</div>
+      <input type="date" id="flightDate">
+    </div>
+    <div class="field-box" id="returnDateBox" style="opacity:0.35;pointer-events:none">
+      <div class="field-label">Return</div>
+      <input type="date" id="flightReturn">
+      <div class="field-sub">Add for round trip</div>
+    </div>
+    <div class="field-box">
+      <div class="field-label">Travellers &amp; Class</div>
+      <select id="flightPassengers" style="margin-bottom:5px">
+        <option value="1">1 Traveller</option>
+        <option value="2">2 Travellers</option>
+        <option value="3">3 Travellers</option>
+        <option value="4">4 Travellers</option>
+      </select>
+      <select id="flightClass">
+        <option value="economy">Economy</option>
+        <option value="premium">Premium Economy</option>
+        <option value="business">Business</option>
+        <option value="first">First Class</option>
+      </select>
+    </div>
+  </div>
+  <div class="special-fares">
+    <div class="special-fares-label">Special Fares</div>
+    <div class="fare-pills">
+      <button class="fare-pill active" onclick="selectFare(this)">Regular<span class="pill-sub">Regular fares</span></button>
+      <button class="fare-pill" onclick="selectFare(this)">Student<span class="pill-sub">Extra discounts</span></button>
+      <button class="fare-pill" onclick="selectFare(this)">Armed Forces<span class="pill-sub">Up to ₹600 off</span></button>
+      <button class="fare-pill" onclick="selectFare(this)">Senior Citizen<span class="pill-sub">Up to ₹600 off</span></button>
+      <button class="fare-pill" onclick="selectFare(this)">Doctors &amp; Nurses<span class="pill-sub">Up to ₹600 off</span></button>
+    </div>
+  </div>
+  <div class="price-result" id="flightPriceResult" style="display:none">
+    <div><div class="pr-label">Estimated fare</div><div class="pr-amount" id="flightPriceDisplay">₹0</div><div class="pr-note">Per person · excl. taxes</div></div>
+    <button class="pr-add-btn" onclick="addFlight()">Book Now →</button>
+  </div>
+  <div class="search-btn-wrap"><button class="search-btn" onclick="calculateFlight()">Search Flights</button></div>
+</div>
+
+<!-- ═══════════════ HOTELS ═══════════════ -->
+<div class="service-panel" id="panel-hotels">
+  <h2 class="panel-title">Book Hotels</h2>
+  <p class="panel-subtitle">Find the perfect stay — from budget rooms to 5-star luxury.</p>
+  <div class="booking-row">
+    <div class="field-box">
+      <div class="field-label">City or Destination</div>
+      <input type="text" id="hotelCity" placeholder="Goa" oninput="showSug(this,'hotelCitySug')" autocomplete="off">
+      <div class="field-sub">Where do you want to stay?</div>
+      <div class="suggestions" id="hotelCitySug"></div>
+    </div>
+  </div>
+  <div class="booking-row cols-3">
+    <div class="field-box">
+      <div class="field-label">Check-in</div>
+      <input type="date" id="hotelCheckin">
+    </div>
+    <div class="field-box">
+      <div class="field-label">Check-out</div>
+      <input type="date" id="hotelCheckout">
+    </div>
+    <div class="field-box">
+      <div class="field-label">Room Type</div>
+      <select id="roomType">
+        <option value="1">Standard Room</option>
+        <option value="1.5">Deluxe Room</option>
+        <option value="2">Suite</option>
+      </select>
+    </div>
+  </div>
+  <div class="price-result" id="hotelPriceResult" style="display:none">
+    <div><div class="pr-label">Estimated total</div><div class="pr-amount" id="hotelPriceDisplay">₹0</div><div class="pr-note">For your entire stay</div></div>
+    <button class="pr-add-btn" onclick="addHotel()">Book Now →</button>
+  </div>
+  <div class="search-btn-wrap"><button class="search-btn" onclick="calculateHotel()">Search Hotels</button></div>
+</div>
+
+<!-- ═══════════════ TRAINS ═══════════════ -->
+<div class="service-panel" id="panel-trains">
+  <h2 class="panel-title">Book Trains</h2>
+  <p class="panel-subtitle">Search trains across India — Sleeper, AC, and First Class.</p>
+  <div class="booking-row cols-2 swap-row">
+    <div class="field-box">
+      <div class="field-label">From Station</div>
+      <input type="text" id="trainFrom" placeholder="New Delhi" oninput="showSug(this,'trainFromSug')" autocomplete="off">
+      <div class="field-sub">Departure city</div>
+      <div class="suggestions" id="trainFromSug"></div>
+    </div>
+    <button class="swap-btn" onclick="swap('trainFrom','trainTo')" title="Swap">⇄</button>
+    <div class="field-box">
+      <div class="field-label">To Station</div>
+      <input type="text" id="trainTo" placeholder="Chennai" oninput="showSug(this,'trainToSug')" autocomplete="off">
+      <div class="field-sub">Destination city</div>
+      <div class="suggestions" id="trainToSug"></div>
+    </div>
+  </div>
+  <div class="booking-row cols-2">
+    <div class="field-box">
+      <div class="field-label">Travel Date</div>
+      <input type="date" id="trainDate">
+    </div>
+    <div class="field-box">
+      <div class="field-label">Class</div>
+      <select id="trainClass">
+        <option value="1">Sleeper (SL)</option>
+        <option value="2">3-Tier AC (3A)</option>
+        <option value="3">2-Tier AC (2A)</option>
+        <option value="4">1st Class AC (1A)</option>
+      </select>
+    </div>
+  </div>
+  <div class="price-result" id="trainPriceResult" style="display:none">
+    <div><div class="pr-label">Estimated fare</div><div class="pr-amount" id="trainPriceDisplay">₹0</div><div class="pr-note">Per person</div></div>
+    <button class="pr-add-btn" onclick="addTrain()">Book Now →</button>
+  </div>
+  <div class="search-btn-wrap"><button class="search-btn" onclick="calculateTrain()">Search Trains</button></div>
+</div>
+
+<!-- ═══════════════ BUSES ═══════════════ -->
+<div class="service-panel" id="panel-buses">
+  <h2 class="panel-title">Book Buses</h2>
+  <p class="panel-subtitle">Comfortable AC and non-AC buses across hundreds of routes in India.</p>
+  <div class="trip-type-row">
+    <label class="trip-radio selected"><input type="radio" name="busType" value="oneway" checked> One Way</label>
+    <label class="trip-radio"><input type="radio" name="busType" value="return"> Round Trip</label>
+  </div>
+  <div class="booking-row cols-2 swap-row">
+    <div class="field-box">
+      <div class="field-label">From</div>
+      <input type="text" id="busFrom" placeholder="Bangalore" oninput="showSug(this,'busFromSug')" autocomplete="off">
+      <div class="field-sub">Boarding city</div>
+      <div class="suggestions" id="busFromSug"></div>
+    </div>
+    <button class="swap-btn" onclick="swap('busFrom','busTo')" title="Swap">⇄</button>
+    <div class="field-box">
+      <div class="field-label">To</div>
+      <input type="text" id="busTo" placeholder="Hyderabad" oninput="showSug(this,'busToSug')" autocomplete="off">
+      <div class="field-sub">Destination city</div>
+      <div class="suggestions" id="busToSug"></div>
+    </div>
+  </div>
+  <div class="booking-row cols-3">
+    <div class="field-box">
+      <div class="field-label">Travel Date</div>
+      <input type="date" id="busDate">
+    </div>
+    <div class="field-box">
+      <div class="field-label">Bus Type</div>
+      <select id="busType">
+        <option value="1">Non-AC Seater</option>
+        <option value="1.5">AC Seater</option>
+        <option value="2">AC Sleeper</option>
+        <option value="2.5">Volvo AC</option>
+        <option value="3">Volvo Multi-Axle</option>
+      </select>
+    </div>
+    <div class="field-box">
+      <div class="field-label">Passengers</div>
+      <select id="busPassengers">
+        <option value="1">1 Passenger</option>
+        <option value="2">2 Passengers</option>
+        <option value="3">3 Passengers</option>
+        <option value="4">4 Passengers</option>
+      </select>
+    </div>
+  </div>
+  <div class="price-result" id="busPriceResult" style="display:none">
+    <div><div class="pr-label">Estimated fare</div><div class="pr-amount" id="busPriceDisplay">₹0</div><div class="pr-note">Per person</div></div>
+    <button class="pr-add-btn" onclick="addBus()">Book Now →</button>
+  </div>
+  <div class="search-btn-wrap"><button class="search-btn" onclick="calculateBus()">Search Buses</button></div>
+</div>
+
+<!-- ═══════════════ CABS ═══════════════ -->
+<div class="service-panel" id="panel-cabs">
+  <h2 class="panel-title">Book Cabs</h2>
+  <p class="panel-subtitle">Airport transfers, outstation trips and city rides.</p>
+  <div class="booking-row cols-2 swap-row">
+    <div class="field-box">
+      <div class="field-label">Pickup</div>
+      <input type="text" id="cabFrom" placeholder="Mumbai Airport" oninput="showSug(this,'cabFromSug')" autocomplete="off">
+      <div class="field-sub">Where do we pick you up?</div>
+      <div class="suggestions" id="cabFromSug"></div>
+    </div>
+    <button class="swap-btn" onclick="swap('cabFrom','cabTo')" title="Swap">⇄</button>
+    <div class="field-box">
+      <div class="field-label">Drop</div>
+      <input type="text" id="cabTo" placeholder="Bandra, Mumbai" oninput="showSug(this,'cabToSug')" autocomplete="off">
+      <div class="field-sub">Where are you headed?</div>
+      <div class="suggestions" id="cabToSug"></div>
+    </div>
+  </div>
+  <div class="booking-row cols-2">
+    <div class="field-box">
+      <div class="field-label">Pickup Date</div>
+      <input type="date" id="cabDate">
+    </div>
+    <div class="field-box">
+      <div class="field-label">Cab Type</div>
+      <select id="cabType">
+        <option value="mini">Mini (Hatchback)</option>
+        <option value="sedan">Sedan</option>
+        <option value="suv">SUV</option>
+        <option value="luxury">Luxury</option>
+      </select>
+    </div>
+  </div>
+  <div class="price-result" id="cabPriceResult" style="display:none">
+    <div><div class="pr-label">Estimated fare</div><div class="pr-amount" id="cabPriceDisplay">₹0</div><div class="pr-note">Approx. based on distance</div></div>
+    <button class="pr-add-btn" onclick="addCab()">Book Now →</button>
+  </div>
+  <div class="search-btn-wrap"><button class="search-btn" onclick="calculateCab()">Search Cabs</button></div>
+</div>
+
+<!-- ═══════════════ AIRBNB ═══════════════ -->
+<div class="service-panel" id="panel-airbnb">
+  <h2 class="panel-title">Airbnb Stays</h2>
+  <p class="panel-subtitle">Unique homes and apartments for every kind of traveller.</p>
+  <div class="booking-row">
+    <div class="field-box">
+      <div class="field-label">City / Location</div>
+      <input type="text" id="airbnbCity" placeholder="Pondicherry" oninput="showSug(this,'airbnbCitySug')" autocomplete="off">
+      <div class="field-sub">Where are you going?</div>
+      <div class="suggestions" id="airbnbCitySug"></div>
+    </div>
+  </div>
+  <div class="booking-row cols-3">
+    <div class="field-box"><div class="field-label">Check-in</div><input type="date" id="airbnbCheckin"></div>
+    <div class="field-box"><div class="field-label">Nights</div><input type="number" id="airbnbNights" placeholder="5" min="1"></div>
+    <div class="field-box">
+      <div class="field-label">Guests</div>
+      <select id="airbnbGuests">
+        <option value="1">1 Guest</option><option value="2">2 Guests</option>
+        <option value="3">3 Guests</option><option value="4">4 Guests</option>
+        <option value="6">5–6 Guests</option><option value="8">7+ Guests</option>
+      </select>
+    </div>
+  </div>
+  <div class="price-result" id="airbnbPriceResult" style="display:none">
+    <div><div class="pr-label">Estimated total</div><div class="pr-amount" id="airbnbPriceDisplay">₹0</div><div class="pr-note">For entire stay</div></div>
+    <button class="pr-add-btn" onclick="addAirbnb()">Book Now →</button>
+  </div>
+  <div class="search-btn-wrap"><button class="search-btn" onclick="calculateAirbnb()">Search Airbnbs</button></div>
+</div>
+
+<!-- ═══════════════ VILLAS ═══════════════ -->
+<div class="service-panel" id="panel-villas">
+  <h2 class="panel-title">Book Villas</h2>
+  <p class="panel-subtitle">Premium private villas for groups, getaways and special occasions.</p>
+  <div class="booking-row">
+    <div class="field-box">
+      <div class="field-label">Destination</div>
+      <input type="text" id="villaCity" placeholder="Coorg" oninput="showSug(this,'villaCitySug')" autocomplete="off">
+      <div class="field-sub">e.g. Goa, Manali, Coorg, Udaipur</div>
+      <div class="suggestions" id="villaCitySug"></div>
+    </div>
+  </div>
+  <div class="booking-row cols-3">
+    <div class="field-box"><div class="field-label">Check-in</div><input type="date" id="villaCheckin"></div>
+    <div class="field-box"><div class="field-label">Nights</div><input type="number" id="villaNights" placeholder="3" min="1"></div>
+    <div class="field-box">
+      <div class="field-label">Villa Size</div>
+      <select id="villaSize">
+        <option value="small">Small (2–4 guests)</option>
+        <option value="medium">Medium (5–8 guests)</option>
+        <option value="large">Large (9–16 guests)</option>
+      </select>
+    </div>
+  </div>
+  <div class="price-result" id="villaPriceResult" style="display:none">
+    <div><div class="pr-label">Estimated total</div><div class="pr-amount" id="villaPriceDisplay">₹0</div><div class="pr-note">For entire stay</div></div>
+    <button class="pr-add-btn" onclick="addVilla()">Book Now →</button>
+  </div>
+  <div class="search-btn-wrap"><button class="search-btn" onclick="calculateVilla()">Search Villas</button></div>
+</div>
+
+<!-- ═══════════════ HOLIDAY PACKAGES ═══════════════ -->
+<div class="service-panel" id="panel-packages">
+  <h2 class="panel-title">Holiday Packages</h2>
+  <p class="panel-subtitle">Curated end-to-end holiday packages — flights, hotel, transfers and activities, all included.</p>
+  <div class="booking-row cols-3">
+    <div class="field-box">
+      <div class="field-label">Travelling From</div>
+      <input type="text" id="pkgFrom" placeholder="Mumbai" oninput="showSug(this,'pkgFromSug')" autocomplete="off">
+      <div class="field-sub">Your departure city</div>
+      <div class="suggestions" id="pkgFromSug"></div>
+    </div>
+    <div class="field-box">
+      <div class="field-label">Destination</div>
+      <input type="text" id="pkgTo" placeholder="Bali" oninput="showSug(this,'pkgToSug')" autocomplete="off">
+      <div class="field-sub">Where do you want to go?</div>
+      <div class="suggestions" id="pkgToSug"></div>
+    </div>
+    <div class="field-box">
+      <div class="field-label">Travellers</div>
+      <select id="pkgTravellers">
+        <option value="1">1 Adult</option>
+        <option value="2">2 Adults</option>
+        <option value="3">3 Adults</option>
+        <option value="4">4 Adults</option>
+        <option value="family">Family (2A + 2C)</option>
+        <option value="group">Group (6+)</option>
+      </select>
+    </div>
+  </div>
+  <div class="booking-row cols-2">
+    <div class="field-box"><div class="field-label">Travel Date</div><input type="date" id="pkgDate"></div>
+    <div class="field-box">
+      <div class="field-label">Duration</div>
+      <select id="pkgDuration">
+        <option value="3">3 Nights / 4 Days</option>
+        <option value="5">5 Nights / 6 Days</option>
+        <option value="7">7 Nights / 8 Days</option>
+        <option value="10">10 Nights / 11 Days</option>
+        <option value="14">14 Nights / 15 Days</option>
+      </select>
+    </div>
+  </div>
+  <hr class="form-divider">
+  <div class="special-fares-label">Popular Destinations</div>
+  <div class="package-grid">
+    <div class="package-card" onclick="selectPackage(this,'Bali')">
+      <div class="package-thumb">
+        <img src="https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600&q=80&fit=crop" alt="Bali">
+        <div class="pkg-overlay"></div>
+      </div>
+      <div class="package-info"><h3>Bali</h3><p>5N · Flights + Hotel + Transfers</p><div class="pkg-price">From ₹42,999</div></div>
+    </div>
+    <div class="package-card" onclick="selectPackage(this,'Maldives')">
+      <div class="package-thumb">
+        <img src="https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=600&q=80&fit=crop" alt="Maldives">
+        <div class="pkg-overlay"></div>
+      </div>
+      <div class="package-info"><h3>Maldives</h3><p>4N · Beach Resort + Flights</p><div class="pkg-price">From ₹68,999</div></div>
+    </div>
+    <div class="package-card" onclick="selectPackage(this,'Europe')">
+      <div class="package-thumb">
+        <img src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=600&q=80&fit=crop" alt="Europe">
+        <div class="pkg-overlay"></div>
+      </div>
+      <div class="package-info"><h3>Europe</h3><p>10N · Multi-city + Flights</p><div class="pkg-price">From ₹1,20,999</div></div>
+    </div>
+    <div class="package-card" onclick="selectPackage(this,'Kerala')">
+      <div class="package-thumb">
+        <img src="https://images.unsplash.com/photo-1593693397690-362cb9666fc2?w=600&q=80&fit=crop" alt="Kerala">
+        <div class="pkg-overlay"></div>
+      </div>
+      <div class="package-info"><h3>Kerala</h3><p>5N · Backwaters + Houseboat</p><div class="pkg-price">From ₹18,999</div></div>
+    </div>
+    <div class="package-card" onclick="selectPackage(this,'Rajasthan')">
+      <div class="package-thumb">
+        <img src="https://images.unsplash.com/photo-1477587458883-47145ed94245?w=600&q=80&fit=crop" alt="Rajasthan">
+        <div class="pkg-overlay"></div>
+      </div>
+      <div class="package-info"><h3>Rajasthan</h3><p>7N · Heritage + Desert Safari</p><div class="pkg-price">From ₹22,999</div></div>
+    </div>
+    <div class="package-card" onclick="selectPackage(this,'Thailand')">
+      <div class="package-thumb">
+        <img src="https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=600&q=80&fit=crop" alt="Thailand">
+        <div class="pkg-overlay"></div>
+      </div>
+      <div class="package-info"><h3>Thailand</h3><p>6N · Flights + Hotel + Tours</p><div class="pkg-price">From ₹35,999</div></div>
+    </div>
+  </div>
+  <div class="search-btn-wrap"><button class="search-btn" onclick="searchPackages()">Search Packages</button></div>
+</div>
+
+<!-- ═══════════════ CRUISE ═══════════════ -->
+<div class="service-panel" id="panel-cruise">
+  <h2 class="panel-title">Book a Cruise</h2>
+  <p class="panel-subtitle">Explore the world's finest cruise routes — from the Mediterranean to the Indian Ocean.</p>
+  <div class="booking-row cols-3">
+    <div class="field-box">
+      <div class="field-label">Departure Port</div>
+      <select id="cruiseFrom">
+        <option>Mumbai, India</option>
+        <option>Chennai, India</option>
+        <option>Kochi, India</option>
+        <option>Singapore</option>
+        <option>Dubai, UAE</option>
+        <option>Barcelona, Spain</option>
+      </select>
+    </div>
+    <div class="field-box">
+      <div class="field-label">Cruise Region</div>
+      <select id="cruiseRegion">
+        <option>Indian Ocean</option>
+        <option>Mediterranean</option>
+        <option>Southeast Asia</option>
+        <option>Caribbean</option>
+        <option>Northern Europe</option>
+        <option>Middle East</option>
+      </select>
+    </div>
+    <div class="field-box">
+      <div class="field-label">Duration</div>
+      <select id="cruiseDuration">
+        <option value="3">3–5 Nights</option>
+        <option value="7">6–8 Nights</option>
+        <option value="10">9–12 Nights</option>
+        <option value="14">13–16 Nights</option>
+        <option value="21">17+ Nights</option>
+      </select>
+    </div>
+  </div>
+  <div class="booking-row cols-3">
+    <div class="field-box"><div class="field-label">Departure Date</div><input type="date" id="cruiseDate"></div>
+    <div class="field-box">
+      <div class="field-label">Cabin Type</div>
+      <select id="cruiseCabin">
+        <option value="1">Interior Cabin</option>
+        <option value="1.4">Ocean View</option>
+        <option value="1.8">Balcony Cabin</option>
+        <option value="2.5">Mini Suite</option>
+        <option value="4">Grand Suite</option>
+      </select>
+    </div>
+    <div class="field-box">
+      <div class="field-label">Guests</div>
+      <select id="cruiseGuests">
+        <option value="1">1 Guest</option>
+        <option value="2">2 Guests</option>
+        <option value="3">3 Guests</option>
+        <option value="4">4 Guests</option>
+      </select>
+    </div>
+  </div>
+  <div class="price-result" id="cruisePriceResult" style="display:none">
+    <div><div class="pr-label">Estimated total</div><div class="pr-amount" id="cruisePriceDisplay">₹0</div><div class="pr-note">Per person · all meals included</div></div>
+    <button class="pr-add-btn" onclick="addCruise()">Book Now →</button>
+  </div>
+  <div class="search-btn-wrap"><button class="search-btn" onclick="calculateCruise()">Search Cruises</button></div>
+</div>
+
+<!-- ═══════════════ VISA ═══════════════ -->
+<div class="service-panel" id="panel-visa">
+  <h2 class="panel-title">Visa Assistance</h2>
+  <p class="panel-subtitle">Hassle-free visa application support for 150+ countries. We handle the paperwork.</p>
+  <div class="info-cards">
+    <div class="info-card selected" onclick="selectInfoCard(this)">
+      <div class="info-card-thumb">
+        <img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&q=80&fit=crop" alt="Tourist Visa">
+        <div class="ic-overlay"></div>
+      </div>
+      <div class="info-card-body">
+        <h3>Tourist Visa</h3>
+        <p>Standard tourist visa for leisure travel and holidays.</p>
+      </div>
+    </div>
+    <div class="info-card" onclick="selectInfoCard(this)">
+      <div class="info-card-thumb">
+        <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&q=80&fit=crop" alt="Business Visa">
+        <div class="ic-overlay"></div>
+      </div>
+      <div class="info-card-body">
+        <h3>Business Visa</h3>
+        <p>For business meetings, conferences and professional visits.</p>
+      </div>
+    </div>
+    <div class="info-card" onclick="selectInfoCard(this)">
+      <div class="info-card-thumb">
+        <img src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=600&q=80&fit=crop" alt="Student Visa">
+        <div class="ic-overlay"></div>
+      </div>
+      <div class="info-card-body">
+        <h3>Student Visa</h3>
+        <p>Long-stay visa for students enrolled in foreign institutions.</p>
+      </div>
+    </div>
+    <div class="info-card" onclick="selectInfoCard(this)">
+      <div class="info-card-thumb">
+        <img src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=600&q=80&fit=crop" alt="e-Visa">
+        <div class="ic-overlay"></div>
+      </div>
+      <span class="badge-new">Fast</span>
+      <div class="info-card-body">
+        <h3>e-Visa</h3>
+        <p>Fast-track electronic visa — approval in 24–72 hours.</p>
+      </div>
+    </div>
+    <div class="info-card" onclick="selectInfoCard(this)">
+      <div class="info-card-thumb">
+        <img src="https://images.unsplash.com/photo-1488085061387-422e29b40080?w=600&q=80&fit=crop" alt="Transit Visa">
+        <div class="ic-overlay"></div>
+      </div>
+      <div class="info-card-body">
+        <h3>Transit Visa</h3>
+        <p>Short-stay visa for stopovers and layovers.</p>
+      </div>
+    </div>
+    <div class="info-card" onclick="selectInfoCard(this)">
+      <div class="info-card-thumb">
+        <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&q=80&fit=crop" alt="Family Visa">
+        <div class="ic-overlay"></div>
+      </div>
+      <div class="info-card-body">
+        <h3>Family Visa</h3>
+        <p>Group application for families travelling together.</p>
+      </div>
+    </div>
+  </div>
+  <hr class="form-divider">
+  <div class="booking-row cols-3">
+    <div class="field-box">
+      <div class="field-label">Nationality</div>
+      <select id="visaNationality">
+        <option>Indian</option><option>British</option><option>American</option>
+        <option>Australian</option><option>Canadian</option><option>Other</option>
+      </select>
+    </div>
+    <div class="field-box">
+      <div class="field-label">Destination Country</div>
+      <input type="text" id="visaCountry" placeholder="e.g. France" autocomplete="off">
+    </div>
+    <div class="field-box">
+      <div class="field-label">Travel Date</div>
+      <input type="date" id="visaDate">
+    </div>
+  </div>
+  <div class="booking-row cols-2">
+    <div class="field-box">
+      <div class="field-label">Number of Applicants</div>
+      <select id="visaApplicants">
+        <option value="1">1 Person</option><option value="2">2 People</option>
+        <option value="3">3 People</option><option value="4">4 People</option>
+        <option value="5">5+ People</option>
+      </select>
+    </div>
+    <div class="field-box">
+      <div class="field-label">Processing Speed</div>
+      <select id="visaSpeed">
+        <option value="1">Standard (7–10 days) — No extra charge</option>
+        <option value="1.5">Express (3–5 days) — ₹1,500 extra</option>
+        <option value="2">Urgent (1–2 days) — ₹3,000 extra</option>
+      </select>
+    </div>
+  </div>
+  <div class="price-result" id="visaPriceResult" style="display:none">
+    <div><div class="pr-label">Service fee</div><div class="pr-amount" id="visaPriceDisplay">₹0</div><div class="pr-note">Excl. embassy fees · per applicant</div></div>
+    <button class="pr-add-btn" onclick="addVisa()">Book Now →</button>
+  </div>
+  <div class="search-btn-wrap"><button class="search-btn" onclick="calculateVisa()">Check Visa Requirements</button></div>
+</div>
+
+<!-- ═══════════════ FOREX ═══════════════ -->
+<div class="service-panel" id="panel-forex">
+  <h2 class="panel-title">Forex &amp; Currency</h2>
+  <p class="panel-subtitle">Buy foreign currency, travel cards and wire transfers at the best exchange rates.</p>
+  <div class="info-cards">
+    <div class="info-card selected" onclick="selectInfoCard(this)">
+      <div class="info-card-thumb">
+        <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80&fit=crop" alt="Forex Card">
+        <div class="ic-overlay"></div>
+      </div>
+      <span class="badge-new">Popular</span>
+      <div class="info-card-body">
+        <h3>Forex Card</h3>
+        <p>Load multiple currencies on one card. Zero markup on most spends.</p>
+      </div>
+    </div>
+    <div class="info-card" onclick="selectInfoCard(this)">
+      <div class="info-card-thumb">
+        <img src="https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=600&q=80&fit=crop" alt="Foreign Cash">
+        <div class="ic-overlay"></div>
+      </div>
+      <div class="info-card-body">
+        <h3>Foreign Cash</h3>
+        <p>Order foreign currency notes delivered to your door or airport pickup.</p>
+      </div>
+    </div>
+    <div class="info-card" onclick="selectInfoCard(this)">
+      <div class="info-card-thumb">
+        <img src="https://images.unsplash.com/photo-1601597111158-2fceff292cdc?w=600&q=80&fit=crop" alt="Wire Transfer">
+        <div class="ic-overlay"></div>
+      </div>
+      <div class="info-card-body">
+        <h3>Wire Transfer</h3>
+        <p>Send money abroad for tuition, investments or family remittances.</p>
+      </div>
+    </div>
+  </div>
+  <hr class="form-divider">
+  <div class="booking-row cols-2">
+    <div class="field-box">
+      <div class="field-label">You Pay (INR ₹)</div>
+      <input type="number" id="forexAmount" placeholder="50000" min="1000" oninput="calculateForex()">
+      <div class="field-sub">Minimum ₹1,000</div>
+    </div>
+    <div class="field-box">
+      <div class="field-label">You Get (Currency)</div>
+      <select id="forexCurrency" onchange="calculateForex()">
+        <option value="USD">🇺🇸 US Dollar (USD)</option>
+        <option value="EUR">🇪🇺 Euro (EUR)</option>
+        <option value="GBP">🇬🇧 British Pound (GBP)</option>
+        <option value="AED">🇦🇪 UAE Dirham (AED)</option>
+        <option value="SGD">🇸🇬 Singapore Dollar (SGD)</option>
+        <option value="THB">🇹🇭 Thai Baht (THB)</option>
+        <option value="JPY">🇯🇵 Japanese Yen (JPY)</option>
+        <option value="AUD">🇦🇺 Australian Dollar (AUD)</option>
+      </select>
+    </div>
+  </div>
+  <div class="booking-row cols-2">
+    <div class="field-box">
+      <div class="field-label">Delivery By</div>
+      <input type="date" id="forexDate">
+      <div class="field-sub">Next-day delivery available</div>
+    </div>
+    <div class="field-box" id="forexResultBox" style="background:var(--light-grey)">
+      <div class="field-label">You Receive</div>
+      <div style="font-size:1.5rem;font-weight:900;color:var(--black)" id="forexResult">—</div>
+      <div class="field-sub" id="forexRate">Enter amount to see rate</div>
+    </div>
+  </div>
+  <div class="search-btn-wrap"><button class="search-btn" onclick="orderForex()">Order Now</button></div>
+</div>
+
+<!-- ═══════════════ TRAVEL INSURANCE ═══════════════ -->
+<div class="service-panel" id="panel-insurance">
+  <h2 class="panel-title">Travel Insurance</h2>
+  <p class="panel-subtitle">Comprehensive travel protection — medical emergencies, trip cancellation, lost baggage and more.</p>
+  <div class="info-cards">
+    <div class="info-card selected" onclick="selectInfoCard(this)">
+      <div class="info-card-thumb">
+        <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=80&fit=crop" alt="International">
+        <div class="ic-overlay"></div>
+      </div>
+      <span class="badge-new">Recommended</span>
+      <div class="info-card-body">
+        <h3>International</h3>
+        <p>Full coverage for overseas travel including medical, evacuation and delays.</p>
+      </div>
+    </div>
+    <div class="info-card" onclick="selectInfoCard(this)">
+      <div class="info-card-thumb">
+        <img src="https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600&q=80&fit=crop" alt="Domestic">
+        <div class="ic-overlay"></div>
+      </div>
+      <div class="info-card-body">
+        <h3>Domestic</h3>
+        <p>Coverage for travel within India — trip cancellation and baggage loss.</p>
+      </div>
+    </div>
+    <div class="info-card" onclick="selectInfoCard(this)">
+      <div class="info-card-thumb">
+        <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&q=80&fit=crop" alt="Family Floater">
+        <div class="ic-overlay"></div>
+      </div>
+      <div class="info-card-body">
+        <h3>Family Floater</h3>
+        <p>One policy covering the entire family under a single premium.</p>
+      </div>
+    </div>
+    <div class="info-card" onclick="selectInfoCard(this)">
+      <div class="info-card-thumb">
+        <img src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=600&q=80&fit=crop" alt="Student Travel">
+        <div class="ic-overlay"></div>
+      </div>
+      <div class="info-card-body">
+        <h3>Student Travel</h3>
+        <p>Long-term coverage for students studying abroad up to 2 years.</p>
+      </div>
+    </div>
+    <div class="info-card" onclick="selectInfoCard(this)">
+      <div class="info-card-thumb">
+        <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&q=80&fit=crop" alt="Corporate">
+        <div class="ic-overlay"></div>
+      </div>
+      <div class="info-card-body">
+        <h3>Corporate</h3>
+        <p>Group policies for business travellers with annual multi-trip options.</p>
+      </div>
+    </div>
+    <div class="info-card" onclick="selectInfoCard(this)">
+      <div class="info-card-thumb">
+        <img src="https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=600&q=80&fit=crop" alt="Senior Citizen">
+        <div class="ic-overlay"></div>
+      </div>
+      <div class="info-card-body">
+        <h3>Senior Citizen</h3>
+        <p>Tailored coverage for travellers above 60 with enhanced medical benefits.</p>
+      </div>
+    </div>
+  </div>
+  <hr class="form-divider">
+  <div class="booking-row cols-4">
+    <div class="field-box">
+      <div class="field-label">Destination</div>
+      <input type="text" id="insuranceDest" placeholder="USA" autocomplete="off">
+    </div>
+    <div class="field-box"><div class="field-label">Departure Date</div><input type="date" id="insuranceFrom"></div>
+    <div class="field-box"><div class="field-label">Return Date</div><input type="date" id="insuranceTo"></div>
+    <div class="field-box">
+      <div class="field-label">Travellers</div>
+      <select id="insuranceTravellers">
+        <option value="1">1</option><option value="2">2</option>
+        <option value="3">3</option><option value="4">4</option>
+        <option value="5">5+</option>
+      </select>
+    </div>
+  </div>
+  <div class="price-result" id="insurancePriceResult" style="display:none">
+    <div><div class="pr-label">Premium from</div><div class="pr-amount" id="insurancePriceDisplay">₹0</div><div class="pr-note">Per person · full trip coverage</div></div>
+    <button class="pr-add-btn" onclick="addInsurance()">Book Now →</button>
+  </div>
+  <div class="search-btn-wrap"><button class="search-btn" onclick="calculateInsurance()">Get Quotes</button></div>
+</div>
+
+</div><!-- /booking-main -->
+
+<!-- SIDEBAR -->
+<div class="booking-sidebar">
+  <div class="sidebar-heading">Your Selections</div>
+  <div id="sidebar-cart-items"></div>
+  <div class="cart-empty" id="sidebar-cart-empty">Nothing added yet.<br>Start booking above.</div>
+  <div class="cart-total" style="display:none"><span>Total</span><span class="amount" id="sidebar-cart-total">₹0</span></div>
+  <div style="margin-top:16px">
+    <a href="wishlist.html" id="sidebar-checkout-btn" class="btn btn-primary btn-block" style="display:none">Review & Pay →</a>
+  </div>
+</div>
+
+</div><!-- /booking-layout -->
+
+<button id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand"><div class="logo">OnlyBees.</div><p>Simplifying your travel experience, one booking at a time.</p></div>
+    <div class="footer-col"><h4>Services</h4><a href="#" onclick="switchTab('flights',null);return false">Flights</a><a href="#" onclick="switchTab('hotels',null);return false">Hotels</a><a href="#" onclick="switchTab('trains',null);return false">Trains</a><a href="#" onclick="switchTab('buses',null);return false">Buses</a><a href="#" onclick="switchTab('cabs',null);return false">Cabs</a></div>
+    <div class="footer-col"><h4>More Services</h4><a href="#" onclick="switchTab('packages',null);return false">Holiday Packages</a><a href="#" onclick="switchTab('cruise',null);return false">Cruise</a><a href="#" onclick="switchTab('visa',null);return false">Visa</a><a href="#" onclick="switchTab('forex',null);return false">Forex & Currency</a><a href="#" onclick="switchTab('insurance',null);return false">Travel Insurance</a></div>
+    <div class="footer-col"><h4>Support</h4><a href="#">Help Centre</a><a href="#">Contact Us</a><a href="#">Privacy Policy</a></div>
+  </div>
+  <div class="footer-bottom"><span>© 2024 OnlyBees. All rights reserved.</span><span>Made with ♥ for Indian travellers</span></div>
+</footer>
+
+<div id="toast-container"></div>
+
+<script src="services.js"></script>
+<script>
+// ── Tab switching ──
+function switchTab(name, btn) {
+  document.querySelectorAll('.service-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.service-panel').forEach(p => p.classList.remove('active'));
+  if (btn) {
+    btn.classList.add('active');
+  } else {
+    document.querySelectorAll('.service-tab').forEach(t => {
+      if (t.getAttribute('onclick') && t.getAttribute('onclick').includes("'"+name+"'")) t.classList.add('active');
+    });
+  }
+  const panel = document.getElementById('panel-' + name);
+  if (panel) panel.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Helpers ──
+function swap(a, b) { const A=document.getElementById(a),B=document.getElementById(b); [A.value,B.value]=[B.value,A.value]; }
+
+function toggleReturn(radio) {
+  const box = document.getElementById('returnDateBox');
+  document.querySelectorAll('.trip-radio').forEach(l => l.classList.remove('selected'));
+  radio.closest('.trip-radio').classList.add('selected');
+  box.style.opacity = radio.value === 'return' ? '1' : '0.35';
+  box.style.pointerEvents = radio.value === 'return' ? 'auto' : 'none';
+}
+
+function selectFare(btn) {
+  btn.closest('.fare-pills').querySelectorAll('.fare-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function selectInfoCard(card) {
+  card.closest('.info-cards').querySelectorAll('.info-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+}
+
+function selectPackage(card, name) {
+  card.closest('.package-grid').querySelectorAll('.package-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  document.getElementById('pkgTo').value = name;
+}
+
+// ── Autocomplete ──
+function showSug(input, sugId) {
+  const q = input.value.toLowerCase().trim();
+  const box = document.getElementById(sugId);
+  if (!q) { box.innerHTML=''; return; }
+  const matches = CITIES.filter(c => c.toLowerCase().startsWith(q)).slice(0,6);
+  box.innerHTML = matches.map(c => `<div onclick="pickCity('${input.id}','${sugId}','${c}')">${c}</div>`).join('');
+}
+function pickCity(inputId, sugId, city) {
+  document.getElementById(inputId).value = city;
+  document.getElementById(sugId).innerHTML = '';
+  let r = JSON.parse(localStorage.getItem('recentCities')||'[]');
+  r = [city,...r.filter(c=>c!==city)].slice(0,5);
+  localStorage.setItem('recentCities', JSON.stringify(r));
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.field-box')) document.querySelectorAll('.field-box .suggestions').forEach(s => s.innerHTML='');
+});
+
+// ── Bus calculation ──
+function calculateBus() {
+  const from = document.getElementById('busFrom').value.trim();
+  const to = document.getElementById('busTo').value.trim();
+  if (!from || !to) { showToast('Please enter both cities.','error'); return; }
+  const type = parseFloat(document.getElementById('busType').value);
+  const pax = parseInt(document.getElementById('busPassengers').value);
+  const base = 400 + Math.random() * 300;
+  const price = Math.round(base * type * pax / 100) * 100;
+  document.getElementById('busPriceDisplay').textContent = '₹' + price.toLocaleString('en-IN');
+  document.getElementById('busPriceResult').style.display = 'flex';
+}
+function addBus() {
+  const from = document.getElementById('busFrom').value.trim();
+  const to = document.getElementById('busTo').value.trim();
+  const price = parseInt(document.getElementById('busPriceDisplay').textContent.replace(/[^0-9]/g,''));
+  if (!from || !to || !price) { showToast('Please search first.','error'); return; }
+  addToCart({ name: `Bus: ${from} → ${to}`, price });
+}
+
+// ── Cruise calculation ──
+function calculateCruise() {
+  const cabin = parseFloat(document.getElementById('cruiseCabin').value);
+  const dur = parseInt(document.getElementById('cruiseDuration').value);
+  const guests = parseInt(document.getElementById('cruiseGuests').value);
+  const price = Math.round(8000 * cabin * dur * guests / 100) * 100;
+  document.getElementById('cruisePriceDisplay').textContent = '₹' + price.toLocaleString('en-IN');
+  document.getElementById('cruisePriceResult').style.display = 'flex';
+}
+function addCruise() {
+  const region = document.getElementById('cruiseRegion').value;
+  const price = parseInt(document.getElementById('cruisePriceDisplay').textContent.replace(/[^0-9]/g,''));
+  if (!price) { showToast('Please search first.','error'); return; }
+  addToCart({ name: `Cruise: ${region}`, price });
+}
+
+// ── Visa ──
+function calculateVisa() {
+  const country = document.getElementById('visaCountry').value.trim();
+  if (!country) { showToast('Please enter destination country.','error'); return; }
+  const applicants = parseInt(document.getElementById('visaApplicants').value);
+  const speed = parseFloat(document.getElementById('visaSpeed').value);
+  const price = Math.round(2500 * speed * applicants / 100) * 100;
+  document.getElementById('visaPriceDisplay').textContent = '₹' + price.toLocaleString('en-IN');
+  document.getElementById('visaPriceResult').style.display = 'flex';
+}
+function addVisa() {
+  const country = document.getElementById('visaCountry').value.trim() || 'Destination';
+  const price = parseInt(document.getElementById('visaPriceDisplay').textContent.replace(/[^0-9]/g,''));
+  if (!price) { showToast('Please check requirements first.','error'); return; }
+  addToCart({ name: `Visa: ${country}`, price });
+}
+
+// ── Forex ──
+const RATES = { USD:83.2, EUR:90.1, GBP:105.4, AED:22.6, SGD:61.8, THB:2.3, JPY:0.55, AUD:54.2 };
+function calculateForex() {
+  const amt = parseFloat(document.getElementById('forexAmount').value);
+  const cur = document.getElementById('forexCurrency').value;
+  if (!amt || amt < 1000) { document.getElementById('forexResult').textContent='—'; document.getElementById('forexRate').textContent='Enter amount to see rate'; return; }
+  const rate = RATES[cur] || 80;
+  document.getElementById('forexResult').textContent = (amt/rate).toFixed(2) + ' ' + cur;
+  document.getElementById('forexRate').textContent = `1 ${cur} = ₹${rate}`;
+}
+function orderForex() {
+  const amt = parseFloat(document.getElementById('forexAmount').value);
+  if (!amt || amt < 1000) { showToast('Please enter a valid amount (min ₹1,000).','error'); return; }
+  addToCart({ name: `Forex: ${document.getElementById('forexResult').textContent}`, price: Math.round(amt) });
+}
+
+// ── Insurance ──
+function calculateInsurance() {
+  const dest = document.getElementById('insuranceDest').value.trim();
+  if (!dest) { showToast('Please enter destination.','error'); return; }
+  const from = document.getElementById('insuranceFrom').value;
+  const to = document.getElementById('insuranceTo').value;
+  const travellers = parseInt(document.getElementById('insuranceTravellers').value) || 1;
+  const days = from && to ? Math.max(1, Math.round((new Date(to)-new Date(from))/86400000)) : 7;
+  const isIntl = document.querySelector('#panel-insurance .info-card.selected h3')?.textContent === 'International';
+  const price = Math.round((isIntl?150:80) * days * travellers / 10) * 10;
+  document.getElementById('insurancePriceDisplay').textContent = '₹' + price.toLocaleString('en-IN');
+  document.getElementById('insurancePriceResult').style.display = 'flex';
+}
+function addInsurance() {
+  const dest = document.getElementById('insuranceDest').value.trim() || 'Destination';
+  const price = parseInt(document.getElementById('insurancePriceDisplay').textContent.replace(/[^0-9]/g,''));
+  if (!price) { showToast('Please get a quote first.','error'); return; }
+  addToCart({ name: `Travel Insurance: ${dest}`, price });
+}
+
+// ── Holiday Packages ──
+function searchPackages() {
+  const to = document.getElementById('pkgTo').value.trim();
+  if (!to) { showToast('Please select or enter a destination.','error'); return; }
+  const dur = parseInt(document.getElementById('pkgDuration').value);
+  const base = { 'Bali':42999,'Maldives':68999,'Europe':120999,'Kerala':18999,'Rajasthan':22999,'Thailand':35999 };
+  const price = base[to] || (25000 + dur * 3000);
+  addToCart({ name: `Holiday Package: ${to} (${dur}N)`, price });
+}
+
+// ── Init ──
+document.addEventListener('DOMContentLoaded', () => {
+  const today = new Date().toISOString().split('T')[0];
+  document.querySelectorAll('input[type="date"]').forEach(el => el.min = today);
+
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  const authLink = document.getElementById('nav-auth-link');
+  const signupLink = document.getElementById('nav-signup-link');
+  if (isLoggedIn) {
+    authLink.textContent = 'Logout';
+    authLink.classList.remove('nav-login');
+    authLink.href = '#';
+    authLink.onclick = () => { localStorage.removeItem('isLoggedIn'); window.location.href='home.html'; return false; };
+    if (signupLink) { signupLink.textContent='My Account'; signupLink.href='profile.html'; signupLink.classList.remove('nav-signup'); }
+  }
+  const cart = JSON.parse(localStorage.getItem('checkoutServices')||'[]');
+  if (cart.length) document.querySelectorAll('.cart-badge').forEach(b => { b.style.display='inline-flex'; b.textContent=cart.length; });
+  window.addEventListener('scroll', () => document.getElementById('back-to-top').classList.toggle('visible', window.scrollY > 300));
+  const hash = location.hash.replace('#','');
+  if (hash && document.getElementById('panel-'+hash)) switchTab(hash, null);
+});
+</script>
+</body>
+</html>

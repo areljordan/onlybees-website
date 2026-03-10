@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Account — OnlyBees</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800;900&family=Barlow+Condensed:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="main.css">
+</head>
+<body>
+
+<header>
+  <a href="home.html" class="header-logo">OnlyBees.</a>
+  <nav id="main-nav">
+    <a href="home.html">Home</a>
+    <a href="services.html">Services</a>
+    <a href="wishlist.html">Checkout <span class="badge cart-badge" style="display:none">0</span></a>
+    <a href="profile.html" class="active">My Account</a>
+    <a href="#" class="nav-login" onclick="logout(); return false;">Logout</a>
+  </nav>
+  <button class="menu-toggle" onclick="document.getElementById('main-nav').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<main>
+  <div class="profile-layout">
+
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <div style="display:flex;align-items:center;gap:20px">
+        <div class="profile-avatar" id="avatar-initials">?</div>
+        <div class="profile-info">
+          <h1 id="profile-name">Loading...</h1>
+          <p id="profile-email">—</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a href="services.html" class="btn btn-primary btn-sm">Book a Trip</a>
+        <button class="btn btn-outline btn-sm" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <!-- Account Details -->
+    <div class="profile-section-title">Account Details</div>
+    <div class="detail-grid" id="detail-grid">
+      <!-- filled by JS -->
+    </div>
+
+    <!-- Order History -->
+    <div class="profile-section-title">Booking History</div>
+    <div id="order-history">
+      <!-- filled by JS -->
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="logo">OnlyBees.</div>
+      <p>Simplifying your travel experience, one booking at a time.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Quick Links</h4>
+      <a href="home.html">Home</a>
+      <a href="services.html">Services</a>
+      <a href="wishlist.html">Checkout</a>
+    </div>
+    <div class="footer-col">
+      <h4>Support</h4>
+      <a href="#">Help Centre</a>
+      <a href="#">Contact Us</a>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2024 OnlyBees. All rights reserved.</span>
+    <span>Made with ♥ for Indian travellers</span>
+  </div>
+</footer>
+
+<div id="toast-container"></div>
+
+<script>
+function logout() {
+  localStorage.removeItem('isLoggedIn');
+  window.location.href = 'home.html';
+}
+
+function showToast(msg, type) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast toast-' + (type||'info');
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Guard: must be logged in
+  if (localStorage.getItem('isLoggedIn') !== 'true') {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const user = JSON.parse(localStorage.getItem('onlybeesUser') || '{}');
+  const orders = JSON.parse(localStorage.getItem('orderHistory') || '[]');
+  const cart = JSON.parse(localStorage.getItem('checkoutServices') || '[]');
+
+  // Cart badge
+  if (cart.length > 0) {
+    document.querySelectorAll('.cart-badge').forEach(b => { b.style.display = 'inline-flex'; b.textContent = cart.length; });
+  }
+
+  // Avatar initials
+  const initials = (user.name || '?').split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+  document.getElementById('avatar-initials').textContent = initials;
+  document.getElementById('profile-name').textContent = user.name || 'Traveller';
+  document.getElementById('profile-email').textContent = user.email || '—';
+
+  // Detail grid
+  const fields = [
+    { label: 'Full Name', value: user.name },
+    { label: 'Email Address', value: user.email },
+    { label: 'Date of Birth', value: user.dob ? new Date(user.dob).toLocaleDateString('en-IN', {day:'numeric',month:'long',year:'numeric'}) : '—' },
+    { label: 'Address', value: user.address },
+  ];
+  document.getElementById('detail-grid').innerHTML = fields.map(f => `
+    <div class="detail-item">
+      <label>${f.label}</label>
+      <span>${f.value || '—'}</span>
+    </div>
+  `).join('');
+
+  // Order history
+  const container = document.getElementById('order-history');
+  if (!orders.length) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:48px 20px;border:1.5px solid var(--border);border-radius:14px">
+        <div style="font-size:2.5rem;margin-bottom:12px">🧳</div>
+        <h3 style="font-weight:800;margin-bottom:8px;font-size:1.1rem">No bookings yet</h3>
+        <p style="color:var(--mid);font-size:0.9rem;margin-bottom:20px">Your booking history will appear here.</p>
+        <a href="services.html" class="btn btn-primary btn-sm">Browse Services</a>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = orders.map(order => `
+    <div class="order-card">
+      <div class="order-card-header">
+        <div>
+          <div class="order-id">${order.id}</div>
+          <div class="order-date">${order.date} · Paid via ${order.payment}</div>
+        </div>
+        <div class="order-total-badge">${order.total ? '₹' + order.total.toLocaleString('en-IN') : '—'}</div>
+      </div>
+      <div class="order-items-list">
+        ${(order.items || []).map(i => `<div>· ${i.name} — ₹${i.price.toLocaleString('en-IN')}</div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+});
+</script>
+</body>
+</html>

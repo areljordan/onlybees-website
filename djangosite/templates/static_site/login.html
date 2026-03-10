@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — OnlyBees</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800;900&family=Barlow+Condensed:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="main.css">
+</head>
+<body>
+
+<header>
+  <a href="home.html" class="header-logo">OnlyBees.</a>
+  <nav id="main-nav">
+    <a href="home.html">Home</a>
+    <a href="services.html">Services</a>
+    <a href="signup.html" class="nav-signup">Sign up</a>
+  </nav>
+  <button class="menu-toggle" onclick="document.getElementById('main-nav').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="logo">OnlyBees.</div>
+    <h2>Welcome back</h2>
+    <p class="subtitle">Sign in to your account to continue.</p>
+
+    <form onsubmit="return loginUser()">
+      <div class="input-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="you@example.com" required autocomplete="email">
+      </div>
+      <div class="input-group">
+        <label for="password">Password</label>
+        <div style="position:relative">
+          <input type="password" id="password" placeholder="Enter your password" required autocomplete="current-password" style="padding-right:48px">
+          <button type="button" onclick="togglePwd()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#aaa;cursor:pointer;font-size:1rem;padding:0;line-height:1">👁</button>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" style="margin-top:10px">Sign In</button>
+    </form>
+
+    <p class="auth-link" style="margin-top:18px">Don't have an account? <a href="signup.html">Create one</a></p>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="auth.js"></script>
+<script>
+function togglePwd() {
+  const p = document.getElementById('password');
+  p.type = p.type === 'password' ? 'text' : 'password';
+}
+</script>
+</body>
+</html>

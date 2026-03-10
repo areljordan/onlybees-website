@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Trip — OnlyBees</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800;900&family=Barlow+Condensed:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="main.css">
+</head>
+<body>
+
+<header>
+  <a href="home.html" class="header-logo">OnlyBees.</a>
+  <nav id="main-nav">
+    <a href="home.html">Home</a>
+    <a href="services.html">Services</a>
+    <a href="wishlist.html" class="active">Checkout</a>
+    <a href="login.html" class="nav-login" id="nav-auth-link">Login</a>
+  </nav>
+  <button class="menu-toggle" onclick="document.getElementById('main-nav').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<main>
+  <div class="checkout-layout">
+
+    <!-- Progress -->
+    <div class="checkout-progress">
+      <div class="progress-step active" id="progress-step-1">
+        <div class="circle" id="prog-1">1</div>
+        <span class="label">Trip</span>
+      </div>
+      <div class="progress-line" id="line-1"></div>
+      <div class="progress-step" id="progress-step-2">
+        <div class="circle" id="prog-2">2</div>
+        <span class="label">Details</span>
+      </div>
+      <div class="progress-line" id="line-2"></div>
+      <div class="progress-step" id="progress-step-3">
+        <div class="circle" id="prog-3">3</div>
+        <span class="label">Payment</span>
+      </div>
+    </div>
+
+    <!-- STEP 1: Summary -->
+    <div id="step-1" class="checkout-step">
+      <div class="checkout-card">
+        <h2>Your Trip Summary</h2>
+        <div class="order-list" id="checkoutItems"></div>
+        <div class="order-total-row" style="border-top:1.5px solid var(--border)">
+          <span class="lbl">Total</span>
+          <span class="val">₹<span id="totalAmount">0</span></span>
+        </div>
+        <div style="margin-top:28px;display:flex;gap:12px;flex-wrap:wrap">
+          <a href="services.html" class="btn btn-outline">← Add More</a>
+          <button class="btn btn-primary" id="summary-continue-btn" onclick="goToDetails()">Continue →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: Details -->
+    <div id="step-2" class="checkout-step" style="display:none">
+      <div class="checkout-card">
+        <h2>Your Details</h2>
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" id="fullName" placeholder="As per your ID" required>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="form-group">
+            <label>Date of Birth *</label>
+            <input type="date" id="dob" required>
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="tel" id="phone" placeholder="+91 98765 43210">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="detailsEmail" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label>Address *</label>
+          <input type="text" id="address" placeholder="Street, City, State, PIN" required>
+        </div>
+        <div style="margin-top:28px;display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn btn-outline" onclick="setStep(1)">← Back</button>
+          <button class="btn btn-primary" onclick="goToPayment()">Continue to Payment →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: Payment -->
+    <div id="step-3" class="checkout-step" style="display:none">
+      <div class="checkout-card">
+        <h2>Payment</h2>
+        <div id="payment-review"></div>
+        <div style="margin-top:20px;margin-bottom:8px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--light)">Payment Method</div>
+        <div class="payment-options">
+          <label class="payment-option selected">
+            <input type="radio" name="payment" value="Card" checked>
+            <div>
+              <div class="p-label">Credit / Debit Card</div>
+              <div class="p-sub">Visa, Mastercard, RuPay</div>
+            </div>
+          </label>
+          <label class="payment-option">
+            <input type="radio" name="payment" value="UPI">
+            <div>
+              <div class="p-label">UPI</div>
+              <div class="p-sub">GPay, PhonePe, Paytm, BHIM</div>
+            </div>
+          </label>
+          <label class="payment-option">
+            <input type="radio" name="payment" value="NetBanking">
+            <div>
+              <div class="p-label">Net Banking</div>
+              <div class="p-sub">All major Indian banks</div>
+            </div>
+          </label>
+        </div>
+        <div style="margin-top:28px;display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn btn-outline" onclick="setStep(2)">← Back</button>
+          <button class="btn btn-primary" onclick="placeOrder()">🔒 Pay Now</button>
+        </div>
+        <p style="font-size:0.75rem;color:#bbb;margin-top:14px;text-align:center">Secured with 256-bit SSL encryption.</p>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div id="step-success" style="display:none">
+      <div class="checkout-card">
+        <div class="success-screen">
+          <div class="success-icon">✓</div>
+          <h2 style="font-size:2rem;letter-spacing:-0.02em;margin-bottom:10px">Booking Confirmed.</h2>
+          <p style="margin-bottom:28px">Thank you for choosing OnlyBees. Your trip is booked.</p>
+          <div style="background:var(--light-grey);border-radius:12px;padding:20px;margin-bottom:28px;display:inline-block;min-width:260px">
+            <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--light);margin-bottom:4px">Order ID</div>
+            <div style="font-size:1rem;font-weight:900;letter-spacing:0.04em" id="success-order-id">—</div>
+            <div style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--light);margin-top:14px;margin-bottom:4px">Amount Paid</div>
+            <div style="font-size:1.8rem;font-weight:900;letter-spacing:-0.02em" id="success-total">—</div>
+          </div>
+          <br>
+          <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+            <a href="home.html" class="btn btn-outline">← Home</a>
+            <a href="services.html" class="btn btn-primary">Book Again</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="logo">OnlyBees.</div>
+      <p>Simplifying your travel experience, one booking at a time.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Quick Links</h4>
+      <a href="home.html">Home</a>
+      <a href="services.html">Services</a>
+      <a href="profile.html">My Account</a>
+    </div>
+    <div class="footer-col">
+      <h4>Support</h4>
+      <a href="#">Help Centre</a>
+      <a href="#">Contact Us</a>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Refund Policy</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2024 OnlyBees. All rights reserved.</span>
+    <span>Made with ♥ for Indian travellers</span>
+  </div>
+</footer>
+
+<div id="toast-container"></div>
+<script src="checkout.js"></script>
+<script>
+(function() {
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  const authLink = document.getElementById('nav-auth-link');
+  if (isLoggedIn) {
+    authLink.textContent = 'Logout';
+    authLink.classList.remove('nav-login');
+    authLink.href = '#';
+    authLink.onclick = () => { localStorage.removeItem('isLoggedIn'); window.location.href = 'home.html'; return false; };
+  }
+  // Pre-fill from account
+  if (isLoggedIn) {
+    const user = JSON.parse(localStorage.getItem('onlybeesUser') || '{}');
+    document.addEventListener('DOMContentLoaded', () => {
+      if (user.name) document.getElementById('fullName').value = user.name;
+      if (user.dob) document.getElementById('dob').value = user.dob;
+      if (user.address) document.getElementById('address').value = user.address;
+      if (user.email) document.getElementById('detailsEmail').value = user.email;
+    });
+  }
+})();
+</script>
+</body>
+</html>
