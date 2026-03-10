@@ -1,0 +1,64 @@
+# ── OS files ──────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ── Editor & IDE ──────────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.sublime-project
+*.sublime-workspace
+
+# ── Logs & debug ──────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Dependencies ──────────────────────────────────
+node_modules/
+package-lock.json
+yarn.lock
+
+# ── Python & virtual environments ─────────────────
+venv/
+env/
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# ── Django specific ───────────────────────────────
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+static/collected/
+
+# ── Environment & secrets ─────────────────────────
+.env
+.env.local
+.env.*.local
+secret_key.txt
+
+# ── Build output ──────────────────────────────────
+dist/
+build/
+out/
+
+# ── Temp & cache ──────────────────────────────────
+.cache/
+.temp/
+*.tmp
